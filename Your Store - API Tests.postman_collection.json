@@ -1,0 +1,263 @@
+{
+	"info": {
+		"_postman_id": "3d6055fd-fc05-4c07-891c-eed4930282b2",
+		"name": "Your Store - API Tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "48274064",
+		"_collection_link": "https://nnvalverdem-1894400.postman.co/workspace/Natalie's-Workspace~969b97e5-2f37-4523-8c31-68e9fa8730bc/collection/48274064-3d6055fd-fc05-4c07-891c-eed4930282b2?action=share&source=collection_link&creator=48274064"
+	},
+	"item": [
+		{
+			"name": "https://fakestoreapi.com/products/category/{{categoria}}",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Verificar que la respuesta sea exitosa\r",
+							"pm.test(\"Código de estado es 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"// Verificar que la respuesta es un array\r",
+							"pm.test(\"La respuesta es un array\", function () {\r",
+							"    pm.expect(pm.response.json()).to.be.an(\"array\");\r",
+							"});\r",
+							"\r",
+							"// Verificar que el array no esté vacío\r",
+							"pm.test(\"La lista de productos no está vacía\", function () {\r",
+							"    pm.expect(pm.response.json().length).to.be.above(0);\r",
+							"});\r",
+							"\r",
+							"// Verificar que todos los productos sean de la categoría solicitada\r",
+							"pm.test(\"Todos los productos pertenecen a la categoría solicitada\", function () {\r",
+							"    let categoria = pm.environment.get(\"categoria\");\r",
+							"    pm.response.json().forEach(product => {\r",
+							"        pm.expect(product.category).to.eql(categoria);\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://fakestoreapi.com/products/category/{{categoria}}",
+					"protocol": "https",
+					"host": [
+						"fakestoreapi",
+						"com"
+					],
+					"path": [
+						"products",
+						"category",
+						"{{categoria}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "https://fakestoreapi.com/products/{{productoId}}",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Verificar que el status code sea 200\r",
+							"pm.test(\"Código de estado es 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"// Si el body está vacío, significa que el producto no existe\r",
+							"if (pm.response.text() === \"\") {\r",
+							"    pm.test(\"El producto no existe (respuesta vacía)\", function () {\r",
+							"        pm.expect(pm.response.text()).to.eql(\"\");\r",
+							"    });\r",
+							"} else {\r",
+							"    // Si no está vacío, validar como objeto normal\r",
+							"    const producto = pm.response.json();\r",
+							"\r",
+							"    pm.test(\"La respuesta es un objeto\", function () {\r",
+							"        pm.expect(producto).to.be.an(\"object\");\r",
+							"    });\r",
+							"\r",
+							"    pm.test(\"El producto tiene campos básicos\", function () {\r",
+							"        pm.expect(producto).to.have.property(\"id\");\r",
+							"        pm.expect(producto).to.have.property(\"title\");\r",
+							"        pm.expect(producto).to.have.property(\"price\");\r",
+							"        pm.expect(producto).to.have.property(\"description\");\r",
+							"    });\r",
+							"\r",
+							"    pm.test(\"El producto devuelto corresponde al ID solicitado\", function () {\r",
+							"        let idSolicitado = pm.environment.get(\"productoId\");\r",
+							"        pm.expect(producto.id).to.eql(parseInt(idSolicitado));\r",
+							"    });\r",
+							"}"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://fakestoreapi.com/products/{{productoId}}",
+					"protocol": "https",
+					"host": [
+						"fakestoreapi",
+						"com"
+					],
+					"path": [
+						"products",
+						"{{productoId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "https://fakestoreapi.com/products",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Validar status code\r",
+							"pm.test(\"Código de estado es 200 o 201\", function () {\r",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+							"});\r",
+							"\r",
+							"// Validar que se devuelve un objeto\r",
+							"pm.test(\"La respuesta es un objeto\", function () {\r",
+							"    pm.expect(pm.response.json()).to.be.an(\"object\");\r",
+							"});\r",
+							"\r",
+							"// Validar que se devuelve un ID y guardarlo en variable de entorno\r",
+							"let resBody = pm.response.json();\r",
+							"pm.test(\"El producto creado tiene un ID\", function () {\r",
+							"    pm.expect(resBody).to.have.property(\"id\");\r",
+							"});\r",
+							"pm.environment.set(\"productId\", resBody.id); // Guarda el id para siguientes requests\r",
+							"\r",
+							"// Validar que los campos coinciden con los enviados\r",
+							"let reqBody = {\r",
+							"    title: pm.environment.get(\"productTitle\"),\r",
+							"    price: parseFloat(pm.environment.get(\"productPrice\")),\r",
+							"    description: pm.environment.get(\"productDesc\"),\r",
+							"    image: pm.environment.get(\"productImage\"),\r",
+							"    category: pm.environment.get(\"productCat\")\r",
+							"};\r",
+							"\r",
+							"pm.test(\"El título coincide\", function () {\r",
+							"    pm.expect(resBody.title).to.eql(reqBody.title);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"La categoría coincide\", function () {\r",
+							"    pm.expect(resBody.category).to.eql(reqBody.category);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"title\": \"{{productTitle}}\",\r\n  \"price\": {{productPrice}},\r\n  \"description\": \"{{productDesc}}\",\r\n  \"image\": \"{{productImage}}\",\r\n  \"category\": \"{{productCat}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://fakestoreapi.com/products",
+					"protocol": "https",
+					"host": [
+						"fakestoreapi",
+						"com"
+					],
+					"path": [
+						"products"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "https://fakestoreapi.com/products/{{productId}}",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Validar status code\r",
+							"pm.test(\"Código de estado es 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"// Validar que la respuesta es un objeto\r",
+							"pm.test(\"La respuesta es un objeto\", function () {\r",
+							"    pm.expect(pm.response.json()).to.be.an(\"object\");\r",
+							"});\r",
+							"\r",
+							"let resBody = pm.response.json();\r",
+							"\r",
+							"// Validar que el id corresponda al producto actualizado\r",
+							"pm.test(\"El producto actualizado corresponde al ID solicitado\", function () {\r",
+							"    let idSolicitado = pm.environment.get(\"productId\");\r",
+							"    pm.expect(resBody.id).to.eql(parseInt(idSolicitado));\r",
+							"});\r",
+							"\r",
+							"// Validar que la imagen fue actualizada\r",
+							"pm.test(\"La imagen se actualizó correctamente\", function () {\r",
+							"    let nuevaImagen = pm.environment.get(\"newProductImage\");\r",
+							"    pm.expect(resBody.image).to.eql(nuevaImagen);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"title\": \"{{productTitle}}\",\r\n  \"price\": {{productPrice}},\r\n  \"description\": \"{{productDesc}}\",\r\n  \"image\": \"{{newProductImage}}\",\r\n  \"category\": \"{{productCat}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://fakestoreapi.com/products/{{productId}}",
+					"protocol": "https",
+					"host": [
+						"fakestoreapi",
+						"com"
+					],
+					"path": [
+						"products",
+						"{{productId}}"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
